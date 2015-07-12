@@ -2,28 +2,42 @@ import AWS from 'aws-sdk';
 import fs from 'fs';
 import express from 'express';
 
-const credentials = new AWS.SharedIniFileCredentials({profile: 'web-intro'});
-AWS.config.credentials = credentials;
-
 const s3 = new AWS.S3();
 const app = express();
 
-function uploadFile() {
-  var body = fs.createReadStream('./test.html');
+function uploadFile(path) {
+  var file = fs.createReadStream(path);
 
-  s3.upload({
-      ACL: 'public-read',
-      Body: body,
-      Bucket: 'web-intro',
-      Key: 'test.html',
-      ContentType: 'text/html'
-    })
-    .on('httpUploadProgress', function(evt) { console.log(evt);  })
-    .send(function(err, data) { console.log(err, data)  });
+  return new Promise(function(resolve, reject) {
+    s3.upload({
+        ACL: 'public-read',
+        Body: file,
+        Bucket: 'web-intro',
+        Key: 'test.html',
+        ContentType: 'text/html'
+      })
+      .send(function(err, data) {
+        if(err) {
+          reject(err);
+          return;
+        }
+        resolve(data);
+      });
+  });
 }
 
-app.get('/ping', function(req, res) {
-  res.send('Pong!');
+app.get('/upload', function(req, res) {
+  uploadFile('./test.html')
+    .then(function(data) {
+      res.status(200)
+        .send(data);
+    })
+    .catch(function(error) {
+      res.status(500)
+        .send(error);
+    })
 });
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000, function() {
+    console.log(Date(), 'server started');
+});
