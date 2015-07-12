@@ -1,13 +1,16 @@
 import AWS from 'aws-sdk';
 import fs from 'fs';
 import express from 'express';
+import multer from 'multer';
 
 const s3 = new AWS.S3();
 const app = express();
 
-function uploadFile(path) {
-  var file = fs.createReadStream(path);
+app.use(multer({
+  inMemory: true
+}));
 
+function uploadFile(file) {
   return new Promise(function(resolve, reject) {
     s3.upload({
         ACL: 'public-read',
@@ -26,8 +29,10 @@ function uploadFile(path) {
   });
 }
 
-app.get('/upload', function(req, res) {
-  uploadFile('./test.html')
+app.post('/upload', function(req, res) {
+  const file = req.files.webpage.buffer;
+
+  uploadFile(file)
     .then(function(data) {
       res.status(200)
         .send(data);
