@@ -34,15 +34,23 @@ app.post('/upload', function(req, res) {
 
   uploadFile(file)
     .then(function(data) {
-      res.status(200)
+      console.log('success', data);
+      return res
+        .status(200)
+        .header('Access-Control-Allow-Origin', '*')
         .send(data);
     })
     .catch(function(error) {
-      res.status(500)
+      console.log('error', error);
+      res
+        .status(500)
+        .header('Access-Control-Allow-Origin', '*')
         .send(error);
     })
 });
 
-app.listen(process.env.PORT || 3000, function() {
-    console.log(Date(), 'server started');
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, function() {
+    console.log(Date(), 'server started on', PORT);
 });
