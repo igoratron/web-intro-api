@@ -10,13 +10,13 @@ app.use(multer({
   inMemory: true
 }));
 
-function uploadFile(file) {
+function uploadFile(file, path) {
   return new Promise(function(resolve, reject) {
     s3.upload({
         ACL: 'public-read',
         Body: file,
         Bucket: 'web-intro',
-        Key: 'deployed/test.html',
+        Key: path,
         ContentType: 'text/html'
       })
       .send(function(err, data) {
@@ -31,10 +31,10 @@ function uploadFile(file) {
 
 app.post('/upload', function(req, res) {
   const file = req.files.webpage.buffer;
+  const path = ['deployed/', formatPagename(req.body.pagename), '.html'].join('');
 
-  uploadFile(file)
+  uploadFile(file, path)
     .then(function(data) {
-      console.log('success', data);
       return res
         .status(200)
         .header('Access-Control-Allow-Origin', '*')
@@ -54,3 +54,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, function() {
     console.log(Date(), 'server started on', PORT);
 });
+
+function formatPagename(text) {
+  return text.trim().replace(/ +/g, '-');
+}
