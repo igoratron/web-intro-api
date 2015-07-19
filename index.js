@@ -16,7 +16,7 @@ function uploadFile(file) {
         ACL: 'public-read',
         Body: file,
         Bucket: 'web-intro',
-        Key: 'test.html',
+        Key: 'deployed/test.html',
         ContentType: 'text/html'
       })
       .send(function(err, data) {
